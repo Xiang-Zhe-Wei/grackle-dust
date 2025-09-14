@@ -275,19 +275,14 @@
       integer i, j, k, iter
       integer t, dj, dk
       real*8 ttmin, dom, energy, comp1, comp2
-! ==================================================================
-      real*8  dt_sub_max, dt_sub_min
-      real*8  dens_max, dens_min
-      real*8  engy_max, engy_min
-      real*8  rk2k1, rk2k2
-
-      real*8  rho_cgs, temp, tsp_gyr, tsp_sec, tsp_code, loss, old
-      real*8, parameter :: GYR_SEC = 3.15576e16_DKIND   ! 1 Gyr (sec)
-      real*8, parameter :: a_um = 0.10_DKIND   ! 1 Gyr (sec)
-      real*8, parameter :: omega = 2.5_DKIND   ! 1 Gyr (sec)
-
-      
-      
+      real*8 coolunit, dbase1, tbase1, xbase1, chunit, uvel
+      real*8 heq1, heq2, eqk221, eqk222, eqk131, eqk132,
+     &       eqt1, eqt2, eqtdef, dheq, heq, dlogtem, dx_cgs,
+     &       c_ljeans
+      real*8  rho_cgs, temp, tsp_gyr, tsp_sec, tsp_code, old
+      real*8, parameter :: GYR_SEC = 3.15576e16_DKIND
+      real*8, parameter :: a_um = 0.10_DKIND  
+      real*8, parameter :: omega = 2.5_DKIND  
       real*8, parameter :: UNIT_L = 3.08567758149e21
       real*8, parameter :: UNIT_T = 3.15569252e13
       real*8, parameter :: UNIT_V = UNIT_L / UNIT_T
@@ -296,12 +291,7 @@
       real*8, parameter :: mu    = 0.62
       real*8, parameter :: m_H   = 1.6735575e-24
       real*8, parameter :: k_B   = 1.380649e-16
-      real*8 :: e_half, tgas_end(in)
-! ==================================================================
-      real*8 coolunit, dbase1, tbase1, xbase1, chunit, uvel
-      real*8 heq1, heq2, eqk221, eqk222, eqk131, eqk132,
-     &       eqt1, eqt2, eqtdef, dheq, heq, dlogtem, dx_cgs,
-     &       c_ljeans
+      real*8 :: tgas_end(in)
 
 !  row temporaries
 
@@ -494,31 +484,6 @@
                endif
             enddo
 
-! ==================================================================
-!            dens_max = 0._DKIND
-!            engy_max = 0._DKIND
-!            dens_min = 1.0e99_DKIND
-!            engy_min = 1.0e99_DKIND
-
-!            do i = is+1, ie+1
-!               if (d(i,j,k) > dens_max) dens_max = d(i,j,k)
-!               if (d(i,j,k) < dens_min) dens_min = d(i,j,k)
-!               if (e(i,j,k) > engy_max) engy_max = e(i,j,k)
-!               if (e(i,j,k) < engy_min) engy_min = e(i,j,k)
-!#ifdef _OPENMP
-!!$omp critical
-!#endif
-!            if(i.eq. ie+1 .and. k .eq. ke+1 .and. j .eq. je+1) then
-!            write(0,*) '--------------------------------------'
-!            write(0,'(A,I0,A,ES15.8,A,ES15.8)') 'before iter =', iter, ', dens_max =', dens_max, ', dens_min =', dens_min
-!            write(0,'(A,I0,A,ES15.8,A,ES15.8)') 'before iter =', iter, ', engy_max =', engy_max, ', engy_min =', engy_min
-!            write(0,*) '--------------------------------------'
-!            endif
-!#ifdef _OPENMP
-!!$omp end critical
-!#endif
-!            enddo
-! ******************************************************************
 
 !           Compute the cooling rate, tgas, tdust, and metallicity for this row
 
@@ -565,40 +530,12 @@
      &                iisrffield, isrf_habing, itmask)
 
 
-! ==================================================================
+
          do i = is+1, ie+1
             !edot(i) = 0
             edot(i) = -k_sup * e(i,j,k) * d(i,j,k)
          end do
-! ==================================================================
 
-
-! ==================================================================
-!            dens_max = 0._DKIND
-!            engy_max = 0._DKIND
-!            dens_min = 1.0e99_DKIND
-!            engy_min = 1.0e99_DKIND
-
-!            do i = is+1, ie+1
-!               if (d(i,j,k) > dens_max) dens_max = d(i,j,k)
-!               if (d(i,j,k) < dens_min) dens_min = d(i,j,k)
-!               if (e(i,j,k) > engy_max) engy_max = e(i,j,k)
-!               if (e(i,j,k) < engy_min) engy_min = e(i,j,k)
-!#ifdef _OPENMP
-!!$omp critical
-!#endif
-      
-!            if(i.eq. ie+1 .and. k .eq. ke+1 .and. j .eq. je+1) then
-!            write(0,*) '++++++++++++++++++++++++++++++++++++'
-!            write(0,'(A,I0,A,ES15.8,A,ES15.8)') 'after iter =', iter, ', dens_max =', dens_max, ', dens_min =', dens_min
-!            write(0,'(A,I0,A,ES15.8,A,ES15.8)') 'after iter =', iter, ', engy_max =', engy_max, ', engy_min =', engy_min
-!            write(0,*) '++++++++++++++++++++++++++++++++++++'
-!            endif
-!#ifdef _OPENMP
-!!$omp end critical
-!#endif
-!            enddo
-! ******************************************************************
 
             if (ispecies .gt. 0) then
 
@@ -817,15 +754,7 @@
                   dtit(i) = min(real(abs(0.1_DKIND*
      &              energy/edot(i)), DKIND), 
      &              dt-ttot(i), dtit(i))
-! ******************************************************************
-#ifdef _OPENMP
-!$omp critical
-#endif
-!            write(0,*) 'dt_sub is being calculated'
-#ifdef _OPENMP
-!$omp end critical
-#endif
-! ******************************************************************
+
 
                if (dtit(i) .ne. dtit(i)) then
 #ifdef _OPENMP
@@ -883,28 +812,6 @@
             enddo
             endif
 
-! ==================================================================
-!            dt_sub_max = 0._DKIND
-!            dt_sub_min = 1.0e99_DKIND
-
-!            do i = is+1, ie+1
-!               if (dtit(i) > dt_sub_max) dt_sub_max = dtit(i)
-!               if (dtit(i) < dt_sub_min) dt_sub_min = dtit(i)
-!#ifdef _OPENMP
-!!$omp critical
-!#endif
-!            if(i.eq. ie+1 .and. k .eq. ke+1 .and. j .eq. je+1) then
-!            write(0,*) 'dt_sub max =', dt_sub_max, ', min =', dt_sub_min
-!            write(0,*) 'energy         =', max(p2d(i)/(gamma-1._DKIND), tiny8)
-!            write(0,*) 'edot(i)        =', edot(i)
-!            write(0,*) 'energy/edot(i) =', energy/edot(i)
-!            endif
-!#ifdef _OPENMP
-!!$omp end critical
-!#endif
-!            enddo
-! ******************************************************************
-
 
             if (ispecies .gt. 0) then
 
@@ -932,59 +839,24 @@
             endif
 
 
-! ==================================================================
       do i = is+1, ie+1
         if (.not. itmask(i)) cycle
         rho_cgs = max( d(i,j,k) * dbase1, tiny8 )
-
-        !e_half = abs( e(i,j,k) + real(edot(i)/d(i,j,k)*dtit(i), RKIND) ) * UNIT_E
         tgas_end(i) = e(i,j,k)*(gamma-1._DKIND)*mmw(i)*m_H/k_B * UNIT_E
-
-
-        temp    = max( (tgas(i) + 0*(tgas_end(i) - tgas(i))) *(mu / mmw(i)), 1.0_DKIND )
-        !temp    = max( tgas(i) *(mu / mmw(i)), 1.0_DKIND )
+        temp    = max( (tgas(i) + 0.5 *(tgas_end(i) - tgas(i))) *(mu / mmw(i)), 1.0_DKIND )
         tsp_gyr = 0.17_DKIND * (a_um/0.1_DKIND) * (1.0e-27_DKIND / rho_cgs) * ( ((10.0_DKIND**6.3_DKIND)/temp)**omega + 1.0_DKIND )
 
-        ! 轉為 code 時間
+        ! transform to  code time
         tsp_sec  = tsp_gyr * GYR_SEC
         tsp_code = tsp_sec / utim
 
-        if(i .eq. is+1 .and. j .eq. js+1 .and. k .eq. ks+1 ) then
-         write(0,*) 'temp        =', temp
-         write(0,*) 'd(i,j,k)aum =', d(i,j,k) * dbase1
-         write(0,*) 'dust(i,j,k) =', dust(i,j,k)
-         write(0,*) 'dust_cgs    =', dust(i,j,k)*dbase1
-         write(0,*) 'dbase1      =', dbase1
-         write(0,*) 'metal(i,j,k)=', metal(i,j,k)
-         write(0,*) 'edot(i)=', edot(i)
-         write(0,*) 'e(i,j,k)=', e(i,j,k)
-         write(0,*) 'e_half=', e_half
-         write(0,*) 'tgas(i)=', tgas(i), 'tgas_end(i)=', tgas_end(i)
-         write(0,*) 'mmw(i)=', mmw(i)
-        end if
-
         if (tsp_code .gt. 0.0_DKIND) then
           old  = dust(i,j,k)
-          !dust(i,j,k) = old * exp( - dtit(i) / (tsp_code/3.0_DKIND) )
-          
-          ! Euler
-          !dust(i,j,k) = dust(i,j,k) - (dtit(i)/(tsp_code/3.0_DKIND)) * dust(i,j,k)
-          
-          ! RK2
-          rk2k1 = dtit(i) * ( - old / (tsp_code/3.0_DKIND) )
-          temp    = max( (tgas(i) + 0.5*(tgas_end(i) - tgas(i))) *(mu / mmw(i)), 1.0_DKIND )
-          tsp_gyr = 0.17_DKIND * (a_um/0.1_DKIND) * (1.0e-27_DKIND / rho_cgs) * ( (10.0_DKIND**6.3_DKIND/temp)**omega + 1.0_DKIND )
-          tsp_sec  = tsp_gyr * GYR_SEC
-          tsp_code = tsp_sec / utim
-          rk2k2 = dtit(i) * ( - (old + 0.5 * rk2k1) / (tsp_code/3.0_DKIND) )
-          dust(i,j,k) = old + rk2k2
-
-
+          dust(i,j,k) = old * exp( - dtit(i) / (tsp_code/3.0_DKIND) )
 
           if (dust(i,j,k) .lt. 0.0_DKIND) dust(i,j,k) = 0.0_DKIND
         end if
       end do
-! ==================================================================
 
 !           Add the timestep to the elapsed time for each cell and find
 !            minimum elapsed time step in this row
