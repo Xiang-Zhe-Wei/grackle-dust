@@ -419,9 +419,6 @@
 !$omp&   hyd01k, h2k01, vibh, roth, rotl,
 !$omp&   gpldl, gphdl, hdlte, hdlow, cieco,
 
-!$omp&   dt_sub_max, dt_sub_min, 
-!$omp&   dens_max, dens_min,
-!$omp&   engy_max, engy_min,
 
 !$omp&   itmask )
 #endif
