@@ -418,7 +418,7 @@
 !$omp&   brem, edot,
 !$omp&   hyd01k, h2k01, vibh, roth, rotl,
 !$omp&   gpldl, gphdl, hdlte, hdlow, cieco,
-
+!$omp&   rho_cgs, temp, tsp_gyr, tsp_sec, tsp_code, old,
 
 !$omp&   itmask )
 #endif
