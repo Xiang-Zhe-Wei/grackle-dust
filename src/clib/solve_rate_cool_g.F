@@ -849,6 +849,7 @@
 
         if (tsp_code .gt. 0.0_DKIND) then
           old  = dust(i,j,k)
+          dtit(i) = min(dtit(i), 0.1_DKIND * tsp_code / 3.0_DKIND)
           dust(i,j,k) = old * exp( - dtit(i) / (tsp_code/3.0_DKIND) )
 
           if (dust(i,j,k) .lt. 0.0_DKIND) dust(i,j,k) = 0.0_DKIND
