@@ -847,13 +847,14 @@
         tsp_sec  = tsp_gyr * GYR_SEC
         tsp_code = tsp_sec / utim
 
-        if (tsp_code .gt. 0.0_DKIND) then
+        if (idustfield .eq. 1 .and. tsp_code .gt. 0.0_DKIND) then
           old  = dust(i,j,k)
           dtit(i) = min(dtit(i), 0.1_DKIND * tsp_code / 3.0_DKIND)
           dust(i,j,k) = old * exp( - dtit(i) / (tsp_code/3.0_DKIND) )
 
           if (dust(i,j,k) .lt. 0.0_DKIND) dust(i,j,k) = 0.0_DKIND
         end if
+
       end do
 
 !           Add the timestep to the elapsed time for each cell and find
