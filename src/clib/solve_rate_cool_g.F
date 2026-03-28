@@ -283,14 +283,8 @@
       real*8, parameter :: GYR_SEC = 3.15576e16_DKIND
       real*8, parameter :: a_um = 0.10_DKIND  
       real*8, parameter :: omega = 2.5_DKIND  
-      real*8, parameter :: UNIT_L = 3.08567758149e21
-      real*8, parameter :: UNIT_T = 3.15569252e13
-      real*8, parameter :: UNIT_V = UNIT_L / UNIT_T
-      real*8, parameter :: UNIT_E = UNIT_V * UNIT_V
       real*8, parameter :: k_sup = 0.4
       real*8, parameter :: mu    = 0.62
-      real*8, parameter :: m_H   = 1.6735575e-24
-      real*8, parameter :: k_B   = 1.380649e-16
       real*8 :: tgas_end(in)
 
 !  row temporaries
@@ -839,7 +833,7 @@
       do i = is+1, ie+1
         if (.not. itmask(i)) cycle
         rho_cgs = max( d(i,j,k) * dbase1, tiny8 )
-        tgas_end(i) = e(i,j,k)*(gamma-1._DKIND)*mmw(i)*m_H/k_B * UNIT_E
+        tgas_end(i) = e(i,j,k) * (gamma-1._DKIND) * mmw(i) * utem
         temp    = max( (tgas(i) + 0.5 *(tgas_end(i) - tgas(i))) *(mu / mmw(i)), 1.0_DKIND )
         tsp_gyr = 0.17_DKIND * (a_um/0.1_DKIND) * (1.0e-27_DKIND / rho_cgs) * ( ((10.0_DKIND**6.3_DKIND)/temp)**omega + 1.0_DKIND )
 
