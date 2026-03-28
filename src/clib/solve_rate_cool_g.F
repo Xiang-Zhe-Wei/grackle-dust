@@ -779,6 +779,28 @@
             endif   ! itmask
             enddo   ! end loop over i
 
+      do i = is+1, ie+1
+        if (.not. itmask(i)) cycle
+        rho_cgs = max( d(i,j,k) * dbase1, tiny8 )
+        tgas_end(i) = e(i,j,k) * (gamma-1._DKIND) * mmw(i) * utem
+        temp    = max( (tgas(i) + 0.5 *(tgas_end(i) - tgas(i))) *(mu / mmw(i)), 1.0_DKIND )
+        tsp_gyr = 0.17_DKIND * (a_um/0.1_DKIND) * (1.0e-27_DKIND / rho_cgs) * ( ((10.0_DKIND**6.3_DKIND)/temp)**omega + 1.0_DKIND )
+
+        ! transform to  code time
+        tsp_sec  = tsp_gyr * GYR_SEC
+        tsp_code = tsp_sec / utim
+
+        if (idustfield .eq. 1 .and. tsp_code .gt. 0.0_DKIND) then
+          old  = dust(i,j,k)
+          dtit(i) = min(dtit(i), 0.1_DKIND * tsp_code / 3.0_DKIND)
+          dust(i,j,k) = old * exp( - dtit(i) / (tsp_code/3.0_DKIND) )
+
+          if (dust(i,j,k) .lt. 0.0_DKIND) dust(i,j,k) = 0.0_DKIND
+        end if
+
+      end do
+
+
 !           Update total and gas energy
 
             if (icool .eq. 1) then
@@ -829,27 +851,6 @@
 
             endif
 
-
-      do i = is+1, ie+1
-        if (.not. itmask(i)) cycle
-        rho_cgs = max( d(i,j,k) * dbase1, tiny8 )
-        tgas_end(i) = e(i,j,k) * (gamma-1._DKIND) * mmw(i) * utem
-        temp    = max( (tgas(i) + 0.5 *(tgas_end(i) - tgas(i))) *(mu / mmw(i)), 1.0_DKIND )
-        tsp_gyr = 0.17_DKIND * (a_um/0.1_DKIND) * (1.0e-27_DKIND / rho_cgs) * ( ((10.0_DKIND**6.3_DKIND)/temp)**omega + 1.0_DKIND )
-
-        ! transform to  code time
-        tsp_sec  = tsp_gyr * GYR_SEC
-        tsp_code = tsp_sec / utim
-
-        if (idustfield .eq. 1 .and. tsp_code .gt. 0.0_DKIND) then
-          old  = dust(i,j,k)
-          dtit(i) = min(dtit(i), 0.1_DKIND * tsp_code / 3.0_DKIND)
-          dust(i,j,k) = old * exp( - dtit(i) / (tsp_code/3.0_DKIND) )
-
-          if (dust(i,j,k) .lt. 0.0_DKIND) dust(i,j,k) = 0.0_DKIND
-        end if
-
-      end do
 
 !           Add the timestep to the elapsed time for each cell and find
 !            minimum elapsed time step in this row
