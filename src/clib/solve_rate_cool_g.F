@@ -281,10 +281,10 @@
      &       c_ljeans
       real*8  rho_cgs, temp, tsp_gyr, tsp_sec, tsp_code, old
       real*8, parameter :: GYR_SEC = 3.15576e16_DKIND
-      real*8, parameter :: a_um = 0.10_DKIND  
-      real*8, parameter :: omega = 2.5_DKIND  
-      real*8, parameter :: k_sup = 0.4
-      real*8, parameter :: mu    = 0.6
+      real*8, parameter :: a_um = 0.10_DKIND
+      real*8, parameter :: omega = 2.5_DKIND
+      real*8, parameter :: k_sup = 0.4_DKIND
+      real*8, parameter :: mu    = 0.6_DKIND
       real*8 :: tgas_end(in)
 
 !  row temporaries
