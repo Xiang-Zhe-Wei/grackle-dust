@@ -283,7 +283,6 @@
       real*8, parameter :: GYR_SEC = 3.15576e16_DKIND
       real*8, parameter :: a_um = 0.10_DKIND
       real*8, parameter :: omega = 2.5_DKIND
-      real*8, parameter :: k_sup = 0.4_DKIND
       real*8, parameter :: mu    = 0.6_DKIND
       real*8 :: tgas_end(in)
 
@@ -520,12 +519,6 @@
      &                iTfloor, Tfloor_scalar, Tfloor,
      &                iisrffield, isrf_habing, itmask)
 
-
-
-         do i = is+1, ie+1
-            !edot(i) = 0
-            edot(i) = -k_sup * e(i,j,k) * d(i,j,k)
-         end do
 
 
             if (ispecies .gt. 0) then
