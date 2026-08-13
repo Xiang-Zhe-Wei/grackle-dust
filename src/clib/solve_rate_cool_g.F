@@ -377,8 +377,6 @@
       dk = ke - ks + 1
       dj = je - js + 1
 
-
-
 ! parallelize the k and j loops with OpenMP
 ! flat j and k loops for better parallelism
 #ifdef _OPENMP
@@ -422,8 +420,6 @@
         k = t/dj      + ks+1
         j = mod(t,dj) + js+1
 
-
-
 !       tolerance = 1.0e-06_DKIND * dt
 
 !     Initialize iteration mask to true for all cells.
@@ -466,7 +462,6 @@
             ttot(i) = 0._DKIND
          enddo
 
-
 !        ------------------ Loop over subcycles ----------------
 
          do iter = 1, itmax
@@ -476,7 +471,6 @@
                   dtit(i) = huge8
                endif
             enddo
-
 
 !           Compute the cooling rate, tgas, tdust, and metallicity for this row
 
@@ -748,7 +742,6 @@
                   dtit(i) = min(dt_energy,
      &              dt-ttot(i), dtit(i))
 
-
                if (dtit(i) .ne. dtit(i)) then
 #ifdef _OPENMP
 !$omp critical
@@ -821,8 +814,6 @@
                if (itmask(i)) then
                e(i,j,k)  = e(i,j,k) +
      &                 real(edot(i)/d(i,j,k)*dtit(i), RKIND)
-
-
 #ifdef WRITE_COOLING_DEBUG
                if (e(i,j,k) .ne. e(i,j,k)) then
 #ifdef _OPENMP
@@ -838,7 +829,6 @@
             endif               ! itmask
             enddo
             endif
-
 
             if (ispecies .gt. 0) then
 
@@ -864,7 +854,6 @@
      &                     itmask)
 
             endif
-
 
 !           Add the timestep to the elapsed time for each cell and find
 !            minimum elapsed time step in this row
