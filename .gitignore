@@ -89,7 +89,3 @@ venv.bak/
 
 # from MacOS
 .DS_Store
-
-
-src/clib/Make.mach.spock-intel
-src/clib/Make.mach.eureka-intel

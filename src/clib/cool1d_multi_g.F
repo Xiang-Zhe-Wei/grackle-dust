@@ -954,6 +954,7 @@ c  new (correct) way: (april 4, 2007)
 
          do i = is+1, ie+1
             if ( itmask(i) ) then
+
                myde(i) = 1 - mmw(i) * (3.0_DKIND * fh + 1.0_DKIND) /
      &              4.0_DKIND
                if (imetal .eq. 1) then

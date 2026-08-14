@@ -279,14 +279,20 @@
       real*8 heq1, heq2, eqk221, eqk222, eqk131, eqk132,
      &       eqt1, eqt2, eqtdef, dheq, heq, dlogtem, dx_cgs,
      &       c_ljeans
-      real*8  rho_cgs, tsp_gyr, tsp_sec,
-     &       e_end, old_dust, tsp_end, tsp_begin,
-     &       dt_energy, cool_frac
-      real*8, parameter :: GYR_SEC = 3.154e16_DKIND
-      real*8, parameter :: a_um = 0.10_DKIND
-      real*8, parameter :: omega = 2.5_DKIND
-      real*8, parameter :: mu    = 0.6_DKIND
-      real*8 :: tgas_end
+      real*8  tsp,                                   ! dust sputtering timescale (code unit)
+     &        e_end,                                 ! internal energy at the end of dtit(i) (estimated)
+     &        old_dust,                              ! dust density before applying sputtering this (sub-)step
+     &        tsp_end,                               ! sputtering timescale evaluated at tgas_end
+     &        tsp_begin,                             ! sputtering timescale evaluated at tgas(i)
+     &        dt_energy,                             ! timestep limit from the general cooling/heating criterion
+     &        cool_frac,                             ! fraction of the cooling time allowed for dust sputtering
+     &        dt_hot_gas_for_dust_sputtering,        ! additional timestep limit when dust sputtering is enabled
+     &        tgas_end,                              ! gas temperature at the end of dtit(i) (estimated)
+     &        ref_rho_code                           ! reference density (1e-27 g/cm^3) converted to code units
+      real*8, parameter :: GYR_SEC      = 3.154e16_DKIND         ! seconds per Gyr
+      real*8, parameter :: a_um         = 0.10_DKIND             ! reference dust grain radius (um)
+      real*8, parameter :: omega        = 2.5_DKIND              ! exponent in the sputtering-time scaling
+      real*8, parameter :: mu           = 0.6_DKIND              ! mean molecular weight assumed for the gas
 
 !  row temporaries
 
@@ -353,6 +359,9 @@
       c_ljeans = sqrt((gamma * pi * kboltz) /
      &     (GravConst * mh * dbase1))
 
+!     Convert the reference density (1e-27 g/cm^3) to code units once
+      ref_rho_code = 1.0e-27_DKIND / dbase1
+
       dlogtem = (log(temend) - log(temstart))/real(nratec-1, DKIND)
 
 !  Convert densities from comoving to proper
@@ -411,9 +420,10 @@
 !$omp&   brem, edot,
 !$omp&   hyd01k, h2k01, vibh, roth, rotl,
 !$omp&   gpldl, gphdl, hdlte, hdlow, cieco,
-!$omp&   rho_cgs, tsp_gyr, tsp_sec, old_dust,
+!$omp&   ref_rho_code, tsp, old_dust,
 !$omp&   e_end, tsp_end, tgas_end, tsp_begin,
 !$omp&   dt_energy, cool_frac,
+!$omp&   dt_hot_gas_for_dust_sputtering,
 !$omp&   itmask )
 #endif
       do t = 0, dk*dj-1
@@ -730,17 +740,22 @@
 
 
 
+               dt_energy = real(abs(0.1_DKIND*
+     &              energy/edot(i)), DKIND)
+               dtit(i) = min(dt_energy,
+     &              dt-ttot(i), dtit(i))
+
+               if ( idustfield .eq. 1 ) then
                   if (tgas(i) .gt. 3.0*1.0e5_DKIND) then
                      cool_frac = 0.02_DKIND
                   else
                      cool_frac = 0.1_DKIND
                   endif
 
-
-                  dt_energy = real(abs(cool_frac*
-     &              energy/edot(i)), DKIND)
-                  dtit(i) = min(dt_energy,
-     &              dt-ttot(i), dtit(i))
+                  dt_hot_gas_for_dust_sputtering = real(abs(cool_frac*
+     &                 energy/edot(i)), DKIND)
+                  dtit(i) = min(dt_hot_gas_for_dust_sputtering, dtit(i))
+               endif
 
                if (dtit(i) .ne. dtit(i)) then
 #ifdef _OPENMP
@@ -776,30 +791,32 @@
 
       do i = is+1, ie+1
         if (.not. itmask(i)) cycle
-        rho_cgs = max( d(i,j,k) * dbase1, tiny8 )
 
         e_end = e(i,j,k) + edot(i)/d(i,j,k) * dtit(i)
         tgas_end  = e_end * (gamma-1._DKIND)
      &       * mu * utem
-        tsp_begin = 0.17_DKIND * (a_um/0.1_DKIND)
-     &       * (1.0e-27_DKIND / rho_cgs)
+!       Dust sputtering timescale formula, as given in Eq. (6) of
+!       Richie et al. 2024, ApJ, 974, 81 ("Dust Survival in Galactic Winds")
+        tsp_begin = (0.17_DKIND * GYR_SEC / utim) * (a_um/0.1_DKIND)
+     &       * (ref_rho_code / max(d(i,j,k), tiny8))
      &       * ((10.0_DKIND**6.3_DKIND/tgas(i))**omega
      &       + 1.0_DKIND)
-        tsp_end   = 0.17_DKIND * (a_um/0.1_DKIND)
-     &       * (1.0e-27_DKIND / rho_cgs)
+        tsp_end   = (0.17_DKIND * GYR_SEC / utim) * (a_um/0.1_DKIND)
+     &       * (ref_rho_code / max(d(i,j,k), tiny8))
      &       * ((10.0_DKIND**6.3_DKIND/tgas_end)**omega
      &       + 1.0_DKIND)
 
-        tsp_gyr = 2.0_DKIND /
+!       Effective sputtering timescale in code units (harmonic mean),
+!       derived from applying the trapezoidal rule to the sputtering integral
+!       this gives second-order accuracy.
+        tsp = 2.0_DKIND /
      &       (1.0_DKIND/tsp_begin + 1.0_DKIND/tsp_end)
 
-        tsp_sec  = tsp_gyr * GYR_SEC
 
-
-        if (idustfield .eq. 1 .and. tsp_sec .gt. 0.0_DKIND) then
+        if (idustfield .eq. 1 .and. tsp .gt. 0.0_DKIND) then
            old_dust  = dust(i,j,k)
            dust(i,j,k) = old_dust *
-     &         exp(-dtit(i)*utim/(tsp_sec/3.0_DKIND))
+     &         exp(-dtit(i)/(tsp/3.0_DKIND))
            dust(i,j,k) = max(dust(i,j,k), 0.0_DKIND)
 
         end if
