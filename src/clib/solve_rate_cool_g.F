@@ -287,7 +287,7 @@
      &        dt_hot_gas_for_dust_sputtering,                       ! additional timestep limit when dust sputtering is enabled
      &        tgas_end,                                             ! gas temperature at the end of dtit(i) (estimated)
      &        dust_sputtering_ref_rho_code,                         ! reference density (1e-27 g/cm^3) converted to code units
-     &        dust_sputtering_ref_time_code,                    ! reference dust sputtering time (code units)
+     &        dust_sputtering_ref_time_code,                        ! reference dust sputtering time (code units)
      &        dust_sputtering_ref_a_um,                             ! reference dust grain radius (um)
      &        dust_sputtering_ref_temperature_K                     ! reference gas temperature for sputtering scaling
       real*8, parameter :: GYR_SEC               = 3.154e16_DKIND   ! seconds per Gyr
@@ -361,7 +361,7 @@
 
 !     Convert the reference to code units once
       dust_sputtering_ref_rho_code      = 1.0e-27_DKIND / dbase1
-      dust_sputtering_ref_time_code = 0.17_DKIND * GYR_SEC / utim
+      dust_sputtering_ref_time_code     = 0.17_DKIND * GYR_SEC / utim
       dust_sputtering_ref_a_um          = 0.1_DKIND
       dust_sputtering_ref_temperature_K = 10.0_DKIND**6.3_DKIND
 
