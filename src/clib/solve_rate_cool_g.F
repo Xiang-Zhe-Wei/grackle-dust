@@ -287,7 +287,7 @@
      &        dt_hot_gas_for_dust_sputtering,                       ! additional timestep limit when dust sputtering is enabled
      &        tgas_end,                                             ! gas temperature at the end of dtit(i) (estimated)
      &        dust_sputtering_ref_rho_code,                         ! reference density (1e-27 g/cm^3) converted to code units
-     &        dust_sputtering_ref_time_sec_code,                    ! reference dust sputtering time (code units)
+     &        dust_sputtering_ref_time_code,                    ! reference dust sputtering time (code units)
      &        dust_sputtering_ref_a_um,                             ! reference dust grain radius (um)
      &        dust_sputtering_ref_temperature_K                     ! reference gas temperature for sputtering scaling
       real*8, parameter :: GYR_SEC               = 3.154e16_DKIND   ! seconds per Gyr
@@ -361,7 +361,7 @@
 
 !     Convert the reference to code units once
       dust_sputtering_ref_rho_code      = 1.0e-27_DKIND / dbase1
-      dust_sputtering_ref_time_sec_code = 0.17_DKIND * GYR_SEC / utim
+      dust_sputtering_ref_time_code = 0.17_DKIND * GYR_SEC / utim
       dust_sputtering_ref_a_um          = 0.1_DKIND
       dust_sputtering_ref_temperature_K = 10.0_DKIND**6.3_DKIND
 
@@ -805,13 +805,13 @@
      &          * mmw(i) * utem
 !         Dust sputtering timescale formula, as given in Eq. (6) of
 !         Richie et al. 2024, ApJ, 974, 81 ("Dust Survival in Galactic Winds")
-          tsp_begin = dust_sputtering_ref_time_sec_code 
+          tsp_begin = dust_sputtering_ref_time_code 
      &          * (dust_grain_a_um/dust_sputtering_ref_a_um)
      &          * (dust_sputtering_ref_rho_code / max(d(i,j,k), tiny8))
      &          * ((dust_sputtering_ref_temperature_K/tgas(i))
      &          **dust_sputtering_omega
      &          + 1.0_DKIND)
-          tsp_end   = dust_sputtering_ref_time_sec_code 
+          tsp_end   = dust_sputtering_ref_time_code 
      &          * (dust_grain_a_um/dust_sputtering_ref_a_um)
      &          * (dust_sputtering_ref_rho_code / max(d(i,j,k), tiny8))
      &          * ((dust_sputtering_ref_temperature_K/tgas_end)
